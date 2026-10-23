@@ -54,4 +54,4 @@ Live provider adapters are implemented but **not live-verified**. Official prici
 - [Architecture](docs/ARCHITECTURE.md), [receptionist prompt](docs/RECEPTIONIST.md), [sample alert](docs/SAMPLE_ALERT.md).
 - [Independent fallback TwiML](docs/fallback.twiml.xml); [live acceptance checklist](docs/LIVE_CHECKLIST.md).
 
-No services have been purchased, accounts registered, real texts sent, company routing changed, or repository pushed. Those actions require the owner's specific authorization.
+Publishing this source does not deploy the application or enable live providers. No services have been purchased, accounts registered, real texts sent, or company routing changed. Those actions require the owner's specific authorization.
