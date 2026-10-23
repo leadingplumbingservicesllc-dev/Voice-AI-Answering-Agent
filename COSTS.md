@@ -1,0 +1,48 @@
+# Costs and assumptions — refresh before purchase
+
+**USD; attempted access date 2026-10-23 (America/New_York).** Official pricing pages below returned HTTP 403 through this environment's network policy. Therefore **none of the numbers below are represented as verified current quotes**. Do not purchase on the assumption that a historical/example rate still applies. Check the official pages and account dashboard for current region, plan, account, sender and tax details. No services were purchased by this task.
+
+| Cost component                                                | Official source                                                                                                                 | Editable illustrative assumption                                                       |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| US local number rental                                        | [Twilio US Voice](https://www.twilio.com/en-us/voice/pricing/us)                                                                | $1.15/month                                                                            |
+| Inbound local minutes                                         | [Twilio US Voice](https://www.twilio.com/en-us/voice/pricing/us)                                                                | $0.0085/minute                                                                         |
+| Human transfer/outbound legs                                  | [Twilio US Voice](https://www.twilio.com/en-us/voice/pricing/us)                                                                | Excluded; add actual minutes × destination rate per billed leg                         |
+| ConversationRelay                                             | [Twilio Voice](https://www.twilio.com/en-us/voice/pricing), [product docs](https://www.twilio.com/docs/voice/conversationrelay) | $0.07/minute                                                                           |
+| GPT-4.1 mini text input/output                                | [OpenAI pricing](https://openai.com/api/pricing/), [model](https://platform.openai.com/docs/models/gpt-4.1-mini)                | $0.40 / $1.60 per million tokens; no cache discount assumed                            |
+| US outbound SMS segments                                      | [Twilio US SMS](https://www.twilio.com/en-us/sms/pricing/us)                                                                    | $0.0083 per segment to one recipient                                                   |
+| Carrier surcharges, inbound STOP replies, failed-message fees | [Twilio US SMS](https://www.twilio.com/en-us/sms/pricing/us)                                                                    | Excluded: sender/carrier dependent, add actual fees                                    |
+| Brand/campaign registration and recurring campaign fees       | [Twilio A2P registration](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc)                                           | Excluded: verify entity/campaign classification; one-time and recurring fees may apply |
+| Toll-free verification                                        | [Twilio toll-free](https://www.twilio.com/docs/messaging/compliance/toll-free)                                                  | Alternative sender workflow; verify fees and waiting period                            |
+| Always-on host                                                | [Render pricing](https://render.com/pricing)                                                                                    | Candidate Starter $7/month; capacity/current price unverified                          |
+| Persistent disk                                               | [Render pricing](https://render.com/pricing), [disks](https://render.com/docs/disks)                                            | 1 GB × $0.25/GB/month                                                                  |
+| Encrypted off-host backup storage/transfer                    | Existing storage's official pricing                                                                                             | Excluded; depends on volume/versioning/egress                                          |
+| Optional backup email / hosted app-down Function              | Your SMTP provider / [Twilio Functions](https://www.twilio.com/en-us/serverless/pricing)                                        | Excluded; not another daily notification channel                                       |
+| Taxes / regulatory fees                                       | Actual account invoices                                                                                                         | Excluded; vary by jurisdiction                                                         |
+
+## Editable examples
+
+Run `npx tsx scripts/costs.ts` (or `npm run costs`) and edit its `rates` / `assumptions` object after checking official rates. It does not contact any provider.
+
+Each call averages **3 minutes**, incurs both inbound Voice and ConversationRelay charges, generates **one two-segment summary to each of two phones** (4 outbound SMS segments/call), and uses **12,000 input + 1,200 output text tokens per call** including repeated conversation context. Full text tokens must be measured on real calls; turn count and buffering affect cost. Audio is handled by ConversationRelay; no extra paid STT/TTS charge is added in this architecture. AI disclosure/consent and transfers can add carrier time. Cached tokens are not assumed.
+
+| Calls/month | Minutes | SMS segments | Inbound |   Relay | Text model | SMS base | Host + disk + number | Illustrative total |
+| ----------: | ------: | -----------: | ------: | ------: | ---------: | -------: | -------------------: | -----------------: |
+|         100 |     300 |          400 |   $2.55 |  $21.00 |      $0.67 |    $3.32 |                $8.40 |         **$35.94** |
+|         300 |     900 |        1,200 |   $7.65 |  $63.00 |      $2.02 |    $9.96 |                $8.40 |         **$91.03** |
+|       1,000 |   3,000 |        4,000 |  $25.50 | $210.00 |      $6.72 |   $33.20 |                $8.40 |        **$283.82** |
+
+These totals exclude all rows marked excluded above. Two-segment SMS is a planning assumption, **not a promise** about the actual formatter. The inbox exposes calculated segments (GSM-7 160/153, Unicode 70/67 UTF-16 units, extension characters count twice). Long call links, names, problem descriptions and Unicode can make alerts longer. Preserve callback and urgency rather than silently dropping essential details. Actual carrier billing and deliverability must be verified.
+
+Extra urgent alerts cost **urgent calls × 2 recipients × urgent segments × segment rate**, plus carrier fees. At 10% urgent calls and two-segment urgent alerts, illustrative extra base SMS is $0.33 / $1.00 / $3.32 for the three volumes, in addition to the final summaries. Change `urgentFraction` to 0.10 in the calculator. Transfers add outbound carrier legs; simultaneous fallback ringing and carrier billing rules can add charges even when no AI is running. Optional SMTP storage/Functions are separate line items.
+
+Check current per-leg duration increments and minimums with Twilio. Do not assume fractional minutes in the example equal an invoice: round each call/leg per product rules, then sum. Provider tokens are billed by actual token usage; media/model token pricing is not one fixed per-minute price. Taxes, carrier surcharges, registration, monthly campaign fees and account-specific charges are never included in the illustrative totals above.
+
+## Cheapest routes, honestly
+
+- **Free local demo:** $0 telephony/model/SMS because all providers are simulated. Existing computer and internet still have their normal costs.
+- **Inexpensive live default:** paid number, carrier minutes, ConversationRelay, small text model, two-recipient SMS, one always-on host and persistent disk. Starter is a candidate minimum. Five isolated simulated sessions passed locally, but a measured Render five-call live concurrency test is still required. If 512 MB or its CPU allocation cannot keep safe latency/memory headroom, use the least suitable higher plan (e.g. Standard) at its then-current official price; this task cannot truthfully quote or certify that minimum without measurements and current access.
+- **Existing-computer self-hosting:** can avoid a host subscription; adds power, UPS, connectivity, OS updates, TLS/WSS exposure, backup and operator responsibility. A development tunnel is not an availability guarantee.
+- **Local open-source speech/model:** faster-whisper + maintained Piper (GPL) + Ollama with a commercially permitted model may change inference cost, but needs suitable hardware and custom audio engineering. Check every software/model/voice license separately; do not call the whole stack permissive. Number, carrier and SMS charges remain.
+- **Later Media Streams + OpenAI Realtime:** measure total audio-token, carrier, engineering and operational cost first. No fixed universal audio-API minute price is asserted, and this stack is not implemented in version one.
+
+Software does not guarantee every call reaches the carrier or every text reaches a handset. Budget for monitoring and a tested independent fallback, not just average usage.

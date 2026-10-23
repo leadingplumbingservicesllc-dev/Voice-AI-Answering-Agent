@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Paste into an INDEPENDENT Twilio-hosted TwiML Bin. Replace every placeholder.
+Both Number destinations ring together; first answer connects. These must be
+DIRECT numbers, never the public line which forwards to the assistant.
+No audio recording, transcription, model or application request here. -->
+<Response>
+  <Say>Thank you for calling Leading Plumbing Services. Please hold while we try to reach the team.</Say>
+  <Dial timeout="18" answerOnBridge="true">
+    <Number>REPLACE_WITH_PRIMARY_DIRECT_E164_NUMBER</Number>
+    <Number>REPLACE_WITH_SECONDARY_DIRECT_E164_NUMBER_OR_REMOVE_THIS_ELEMENT</Number>
+  </Dial>
+  <Say>If you still need to reach the team, please call our usual business number during business hours. If this is an immediate danger, move to safety and contact 911 or the appropriate emergency utility. Thank you.</Say>
+  <Hangup/>
+</Response>

@@ -1,0 +1,36 @@
+import { it, expect } from "vitest";
+import { openDb, getCall } from "../src/db.js";
+import { DemoIntakeEngine } from "../src/demo.js";
+it("allows a caller to describe a custom issue, correct and confirm callback, then completes two intents", () => {
+  const db = openDb(":memory:");
+  const d = new DemoIntakeEngine(db);
+  d.start();
+  d.turn("Fictional Alex");
+  d.turn("+15555550111");
+  d.turn("+15555550122");
+  d.turn("yes");
+  d.turn("123 Example Lane, Lake Worth Beach");
+  d.turn("residential");
+  d.turn("Outdoor faucet dripping by the garage");
+  d.turn("Routine, no active leak");
+  const readback = d.turn("Tomorrow morning");
+  expect(readback.reply).toContain("Outdoor faucet dripping");
+  d.turn("yes");
+  const c = getCall(db, d.id)!;
+  const i = JSON.parse(c.intake);
+  expect(i.callback).toBe("+15555550122");
+  expect(i.callbackConfirmed).toBe(true);
+  expect(i.activeLeak).toBe(false);
+  expect(c.finalized).toBe(1);
+  expect(db.prepare("SELECT * FROM outbox").all()).toHaveLength(2);
+  db.close();
+});
+it("limits noisy demo turns and retains abandoned details without inventing identity", () => {
+  const db = openDb(":memory:");
+  const d = new DemoIntakeEngine(db);
+  d.turn("noise");
+  expect(d.turn("noise").ended).toBe(true);
+  expect(getCall(db, d.id)!.outcome).toBe("partial");
+  expect(JSON.parse(getCall(db, d.id)!.intake).name).toBeUndefined();
+  db.close();
+});
